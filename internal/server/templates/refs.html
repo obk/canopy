@@ -1,0 +1,56 @@
+{{define "header"}}{{template "repoheader" .}}{{end}}
+
+{{define "content"}}
+<div class="row">
+  <div class="col-main">
+    <h3>tags{{if gt .Pages 1}} <small class="muted">{{.TagCount}}</small>{{end}}</h3>
+    {{range $t := .Tags}}
+    <div class="event">
+      <h4>
+        <a href="{{$.Repo.URL "tag" .Name}}">{{.Name}}</a>
+        <small class="muted"><time title="{{date .When}}">{{ago .When}}</time></small>
+        {{if .Annotated}}{{template "sig" index $.Sigs .Hash}}{{end}}
+      </h4>
+      {{if .Annotated}}{{with .Message}}<pre class="commit-msg">{{.}}</pre>{{end}}{{end}}
+      <div class="links">
+        <a href="{{$.Repo.ItemURL "tree" .Name ""}}">browse</a>
+        <a href="{{$.Repo.ItemURL "log" .Name ""}}">log</a>
+        {{with index $.Previous .Name}}<a href="{{$.Repo.URL "compare" (printf "%s...%s" . $t.Name)}}" rel="nofollow" title="since {{.}}">changes</a>{{end}}
+        {{- template "archives" dict "Repo" $.Repo "Ref" .Name}}
+      </div>
+    </div>
+    {{else}}
+    <p class="muted">No tags.</p>
+    {{end}}
+    {{if gt .Pages 1}}
+    <div class="pager">
+      {{if gt .Page 2}}<a class="btn" href="{{.Repo.URL "refs"}}">&laquo; newest</a>{{end}}
+      {{if gt .Page 1}}<a class="btn" href="{{.Repo.URL "refs"}}{{if gt .Page 2}}?page={{add .Page -1}}{{end}}">&lsaquo; newer</a>{{end}}
+      <span class="muted">page {{.Page}} of {{.Pages}}</span>
+      {{if lt .Page .Pages}}<a class="btn" href="{{.Repo.URL "refs"}}?page={{add .Page 1}}">older &rsaquo;</a>{{end}}
+    </div>
+    {{end}}
+  </div>
+  <div class="col-side">
+    <h3>branches</h3>
+    {{range $b := .Branches}}
+    <div class="event">
+      <h4>
+        <a href="{{$.Repo.ItemURL "tree" .Name ""}}">{{.Name}}</a>
+        {{if eq .Name $.Default}}<span class="ref-label branch">default</span>{{end}}
+      </h4>
+      <p class="branch-head"><a class="hash" href="{{$.Repo.URL "commit" .Commit}}">{{short .Commit}}</a> {{.Subject}} <small class="muted"><time title="{{date .When}}">{{ago .When}}</time></small></p>
+      {{if ne .Name $.Default}}{{with index $.Diverged .Name}}<p class="branch-diverged muted">{{if or .Ahead .Behind}}{{.Ahead}} ahead, {{.Behind}} behind{{else}}even with{{end}} {{$.Default}}</p>{{end}}{{end}}
+      <div class="links">
+        <a href="{{$.Repo.ItemURL "tree" .Name ""}}">browse</a>
+        <a href="{{$.Repo.ItemURL "log" .Name ""}}">log</a>
+        {{if and $.HasDefault (ne .Name $.Default)}}<a href="{{$.Repo.URL "compare" (printf "%s...%s" $.Default $b.Name)}}" rel="nofollow">compare</a>{{end}}
+        {{- template "archives" dict "Repo" $.Repo "Ref" .Name}}
+      </div>
+    </div>
+    {{else}}
+    <p class="muted">No branches.</p>
+    {{end}}
+  </div>
+</div>
+{{end}}
